@@ -49,5 +49,6 @@ $ env LD_PRELOAD=lib/libmalloc-wf.so cat README.md
 
 ## Future Work
 1. Add support for ```calloc``` and ```realloc``` functions.  
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;```calloc``` implementation added.  
 2. Compare the statistics of three strategies using various test applications.  
 3. Add support to make the library thread safe.  
