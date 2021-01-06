@@ -1,14 +1,15 @@
-/* malloc.c: simple memory allocator -----------------------------------------*/
-
+/* malloc.c
+ * A heap management library.
+ */
 #include <assert.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <limits.h>
+#include <string.h>
 #include <stdlib.h>
 
-/* Macros --------------------------------------------------------------------*/
-
+/* Macros */
 #define ALIGN4(s)           (((((s) - 1) >> 2) << 2) + 4)
 #define BLOCK_DATA(b)       ((b) + 1)
 #define BLOCK_HEADER(ptr)   ((struct block *)(ptr) - 1)
@@ -34,8 +35,9 @@ int blocks_in_list = 0;
 int total_mem_requested = 0;
 int max_heap_size = 0;
 int at_exit = 0;
+int call_atexit = 0;
 
-/* Fybction to report stats at the exit of application */
+/* Function to report stats at the exit of application */
 void report_stats(void) {
     if(at_exit == 0) {
     	printf("mallocs: %d\n", successful_malloc_count);
@@ -149,8 +151,6 @@ struct block *grow_heap(struct block *last, size_t size) {
 
 /* Function called by applications to request memory */
 void *malloc(size_t size) {
-    atexit(report_stats);
-
     /* Align to multiple of 4 */
     size = ALIGN4(size);
     total_mem_requested += size;
@@ -215,6 +215,12 @@ void coalesce_blocks() {
 
 /* Function called by applications to release memory */
 void free(void *ptr) {
+    /* Call atexit funtion */
+    if(call_atexit < 10) {
+        atexit(report_stats);
+	call_atexit++;
+    }
+
     if (ptr == NULL) {
         return;
     }
@@ -229,3 +235,27 @@ void free(void *ptr) {
     successful_free_count++;
 }
 
+/* Function called by applications to initialized request memomory 
+ * void* calloc (size_t nitems, size_t size);
+ */
+void *calloc (size_t nitems, size_t size) {
+    //atexit(report_stats);
+    void *retptr = NULL;
+    size_t bytes = 0;
+
+    if((nitems == 0) || (size == 0)) {
+	return NULL;
+    }
+    
+    bytes = nitems * size;
+
+    retptr = malloc(bytes);
+
+    if(retptr == NULL) {
+	return retptr;
+    }
+
+    memset(retptr, 0, bytes);
+
+    return retptr;
+}
